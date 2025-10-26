@@ -60,8 +60,8 @@ class GameScene:
         """处理事件"""
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                bullet = self.player.shoot()
-                self.bullets.append(bullet)
+                bullets = self.player.shoot()  # 现在返回子弹列表
+                self.bullets.extend(bullets)  # 添加所有子弹
                 
         self.player.handle_event(event)
         
@@ -83,9 +83,10 @@ class GameScene:
         # 更新玩家子弹
         for bullet in self.bullets[:]:
             bullet.update()
-            # 移除超出屏幕的子弹
-            if bullet.y < 0:
-                self.bullets.remove(bullet)
+            # 移除超出屏幕的子弹（包括左右边界）
+            if bullet.y < -50 or bullet.x < -50 or bullet.x > 850:
+                if bullet in self.bullets:
+                    self.bullets.remove(bullet)
         
         # 更新敌人子弹
         for bullet in self.enemy_bullets[:]:
@@ -153,6 +154,13 @@ class GameScene:
         hp_text = font.render(f'HP: {self.player.hp}/{self.player.max_hp}', True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
         screen.blit(hp_text, (10, 50))
+        
+        # 绘制武器提示
+        weapon_names = ['普通子弹', '三连发', '散弹枪', '巨型子弹']
+        small_font = pygame.font.Font(None, 24)
+        weapon_text = small_font.render(f'Weapon[1-4]: {weapon_names[self.player.weapon_type]}', 
+                                       True, (200, 200, 200))
+        screen.blit(weapon_text, (10, 90))
             
     def check_collisions(self):
         """检查碰撞"""
@@ -162,7 +170,9 @@ class GameScene:
                 if self._check_collision(bullet, enemy):
                     if bullet in self.bullets:
                         self.bullets.remove(bullet)
-                    enemy.take_damage(1)
+                    # 使用子弹的伤害值
+                    damage = getattr(bullet, 'damage', 1)
+                    enemy.take_damage(damage)
                     break
         
         # 检查敌人子弹和玩家的碰撞
@@ -170,7 +180,8 @@ class GameScene:
             if self._check_collision(bullet, self.player):
                 if bullet in self.enemy_bullets:
                     self.enemy_bullets.remove(bullet)
-                self.player.take_damage(1)
+                damage = getattr(bullet, 'damage', 1)
+                self.player.take_damage(damage)
         
         # 检查敌人和玩家的碰撞
         for enemy in self.enemies[:]:
@@ -181,6 +192,15 @@ class GameScene:
                 enemy.take_damage(1)
     
     def _check_collision(self, obj1, obj2):
-        """检查两个对象是否碰撞"""
-        return (abs(obj1.x - obj2.x) < 30 and 
-                abs(obj1.y - obj2.y) < 30)
+        """检查两个对象是否碰撞 - 考虑对象大小"""
+        # 获取对象的宽高，默认值为30
+        obj1_width = getattr(obj1, 'width', 30)
+        obj1_height = getattr(obj1, 'height', 30)
+        obj2_width = getattr(obj2, 'width', 30)
+        obj2_height = getattr(obj2, 'height', 30)
+        
+        # 矩形碰撞检测
+        return (obj1.x < obj2.x + obj2_width and
+                obj1.x + obj1_width > obj2.x and
+                obj1.y < obj2.y + obj2_height and
+                obj1.y + obj1_height > obj2.y)

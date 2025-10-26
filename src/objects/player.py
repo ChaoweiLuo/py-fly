@@ -1,5 +1,5 @@
 import pygame
-from src.objects.bullet import Bullet
+from src.objects.bullet import Bullet, TripleBullet, ShotgunBullet, GiantBullet
 import os
 
 class Player:
@@ -19,6 +19,7 @@ class Player:
         self.player_type = player_type  # 记录飞机类型
         self.hp = 3  # 玩家生命值
         self.max_hp = 3  # 最大生命值
+        self.weapon_type = 0  # 武器类型: 0-普通, 1-三连发, 2-散弹枪, 3-巨型子弹
         
         # 尝试加载对应类型的飞机图片
         self.image = None
@@ -61,7 +62,20 @@ class Player:
         
     def handle_event(self, event):
         """处理事件"""
-        pass
+        # 数字键切换武器类型
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                self.weapon_type = 0
+                print("切换为：普通子弹")
+            elif event.key == pygame.K_2:
+                self.weapon_type = 1
+                print("切换为：三连发子弹")
+            elif event.key == pygame.K_3:
+                self.weapon_type = 2
+                print("切换为：散弹枪")
+            elif event.key == pygame.K_4:
+                self.weapon_type = 3
+                print("切换为：巨型子弹")
         
     def update(self):
         """更新玩家状态"""
@@ -93,9 +107,39 @@ class Player:
                            (self.x + 5, self.y + self.height - 15, 
                             self.width - 10, 10))
         
+        # 显示当前武器类型
+        weapon_names = ['普通', '三连发', '散弹枪', '巨型']
+        font = pygame.font.Font(None, 20)
+        weapon_text = font.render(f'Weapon: {weapon_names[self.weapon_type]}', True, (255, 255, 255))
+        screen.blit(weapon_text, (self.x - 10, self.y + self.height + 5))
+        
     def shoot(self):
-        """射击"""
-        return Bullet(self.x + self.width // 2, self.y)
+        """射击 - 根据武器类型返回不同的子弹"""
+        center_x = self.x + self.width // 2
+        shoot_y = self.y
+        
+        if self.weapon_type == 0:
+            # 普通子弹
+            return [Bullet(center_x, shoot_y)]
+        
+        elif self.weapon_type == 1:
+            # 三连发子弹
+            return [
+                TripleBullet(center_x, shoot_y, -1),  # 左
+                TripleBullet(center_x, shoot_y, 0),   # 中
+                TripleBullet(center_x, shoot_y, 1)    # 右
+            ]
+        
+        elif self.weapon_type == 2:
+            # 散弹枪 - 5发扇形射击
+            angles = [-30, -15, 0, 15, 30]  # 度数
+            return [ShotgunBullet(center_x, shoot_y, angle) for angle in angles]
+        
+        elif self.weapon_type == 3:
+            # 巨型子弹
+            return [GiantBullet(center_x - 10, shoot_y - 20)]  # 调整位置使其居中
+        
+        return [Bullet(center_x, shoot_y)]  # 默认返回普通子弹
     
     def take_damage(self, damage=1):
         """受到伤害"""
