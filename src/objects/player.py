@@ -17,6 +17,8 @@ class Player:
         self.speed = 5
         self.color = (0, 255, 0)  # 绿色
         self.player_type = player_type  # 记录飞机类型
+        self.hp = 3  # 玩家生命值
+        self.max_hp = 3  # 最大生命值
         
         # 尝试加载对应类型的飞机图片
         self.image = None
@@ -94,3 +96,11 @@ class Player:
     def shoot(self):
         """射击"""
         return Bullet(self.x + self.width // 2, self.y)
+    
+    def take_damage(self, damage=1):
+        """受到伤害"""
+        self.hp -= damage
+    
+    def is_dead(self):
+        """检查是否死亡"""
+        return self.hp <= 0

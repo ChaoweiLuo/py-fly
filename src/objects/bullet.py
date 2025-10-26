@@ -1,6 +1,7 @@
 import pygame
 
 class Bullet:
+    """玩家子弹"""
     def __init__(self, x, y):
         """初始化子弹"""
         self.x = x
@@ -16,4 +17,25 @@ class Bullet:
         
     def draw(self, screen):
         """绘制子弹"""
+        pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
+
+
+class EnemyBullet:
+    """敌人子弹 - 向下飞行"""
+    def __init__(self, x, y):
+        """初始化敌人子弹"""
+        self.x = x
+        self.y = y
+        self.width = 5
+        self.height = 10
+        self.speed = 5
+        self.color = (255, 100, 100)  # 淡红色
+        self.damage = 1
+        
+    def update(self):
+        """更新子弹位置 - 向下移动"""
+        self.y += self.speed
+        
+    def draw(self, screen):
+        """绘制敌人子弹"""
         pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
