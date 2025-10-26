@@ -3,10 +3,14 @@ from src.objects.player import Player
 from src.objects.enemy import Enemy
 
 class GameScene:
-    def __init__(self, game):
-        """初始化游戏场景"""
+    def __init__(self, game, player_type=1):
+        """初始化游戏场景
+        Args:
+            game: 游戏主对象
+            player_type: 玩家飞机类型 (1 或 2)
+        """
         self.game = game
-        self.player = Player(game.screen_width // 2, game.screen_height - 50)
+        self.player = Player(game.screen_width // 2, game.screen_height - 50, player_type)
         self.enemies = []
         self.bullets = []
         

@@ -3,8 +3,11 @@ import sys
 from src.scenes.game_scene import GameScene
 
 class Game:
-    def __init__(self):
-        """初始化游戏"""
+    def __init__(self, player_type=1):
+        """初始化游戏
+        Args:
+            player_type: 玩家飞机类型 (1 或 2)
+        """
         self.screen_width = 800
         self.screen_height = 600
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -12,8 +15,8 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
         
-        # 初始化游戏场景
-        self.current_scene = GameScene(self)
+        # 初始化游戏场景，传入飞机类型
+        self.current_scene = GameScene(self, player_type)
         
     def run(self):
         """运行游戏主循环"""
