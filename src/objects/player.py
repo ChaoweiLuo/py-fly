@@ -26,11 +26,14 @@ class Player:
         """加载玩家飞机图片"""
         try:
             if player_type == 1:
-                image_path = os.path.join("assets", "images", "player.png")
-                print("尝试加载第一个飞机样式: player.png")
+                image_path = os.path.join("assets", "images", 'player', "1.bmp")
+                print("尝试加载第一个飞机样式: player.bmp")
+            elif player_type == 2:
+                image_path = os.path.join("assets", "images", 'player', "2.bmp")
+                print("尝试加载第二个飞机样式: player2.bmp")
             else:
-                image_path = os.path.join("assets", "images", "player2.png")
-                print("尝试加载第二个飞机样式: player2.png")
+                image_path = os.path.join("assets", "images", 'player', "3.bmp")
+                print("尝试加载第二个飞机样式: player3.bmp")
                 
             if os.path.exists(image_path):
                 print(f"找到图片文件: {image_path}")
@@ -40,7 +43,7 @@ class Player:
             else:
                 print(f"图片文件不存在: {image_path}")
                 # 如果指定的图片不存在，尝试加载默认的player.png
-                default_path = os.path.join("assets", "images", "player.png")
+                default_path = os.path.join("assets", "images", 'player', "player.bmp")
                 if os.path.exists(default_path):
                     print("尝试加载默认飞机图片")
                     self.image = pygame.image.load(default_path).convert_alpha()

@@ -6,7 +6,7 @@ class Game:
     def __init__(self, player_type=1):
         """初始化游戏
         Args:
-            player_type: 玩家飞机类型 (1 或 2)
+            player_type: 玩家飞机类型 (1,2,3)
         """
         self.screen_width = 800
         self.screen_height = 600
