@@ -11,10 +11,10 @@ pip install -r requirements.txt
 ## 运行游戏
 
 ```bash
-# 使用默认飞机样式 (player.png)
+# 使用默认飞机样式 (第一个飞机样式 player.png)
 python src/main.py
 
-# 选择飞机样式1 (player.png)
+# 明确选择飞机样式1 (player.png)
 python src/main.py --player 1
 
 # 选择飞机样式2 (player2.png)
@@ -29,8 +29,8 @@ python src/main.py --player 2
 
 ## 飞机样式
 
-游戏支持两种飞机样式：
-- 样式1: 使用 assets/images/player.png
+游戏支持两种飞机样式，默认使用第一个飞机样式：
+- 样式1 (默认): 使用 assets/images/player.png
 - 样式2: 使用 assets/images/player2.png
 
 ## 游戏结构

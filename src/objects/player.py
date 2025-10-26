@@ -8,7 +8,7 @@ class Player:
         Args:
             x: 初始x坐标
             y: 初始y坐标
-            player_type: 玩家飞机类型 (1 或 2)
+            player_type: 玩家飞机类型 (1 或 2)，默认为1
         """
         self.x = x
         self.y = y
@@ -20,23 +20,38 @@ class Player:
         
         # 尝试加载对应类型的飞机图片
         self.image = None
+        self._load_player_image(player_type)
+        
+    def _load_player_image(self, player_type):
+        """加载玩家飞机图片"""
         try:
             if player_type == 1:
                 image_path = os.path.join("assets", "images", "player.png")
+                print("尝试加载第一个飞机样式: player.png")
             else:
                 image_path = os.path.join("assets", "images", "player2.png")
+                print("尝试加载第二个飞机样式: player2.png")
                 
             if os.path.exists(image_path):
-                self.image = pygame.image.load(image_path)
+                print(f"找到图片文件: {image_path}")
+                self.image = pygame.image.load(image_path).convert_alpha()
                 self.image = pygame.transform.scale(self.image, (self.width, self.height))
+                print(f"成功加载飞机图片: {image_path}")
             else:
+                print(f"图片文件不存在: {image_path}")
                 # 如果指定的图片不存在，尝试加载默认的player.png
-                image_path = os.path.join("assets", "images", "player.png")
-                if os.path.exists(image_path):
-                    self.image = pygame.image.load(image_path)
+                default_path = os.path.join("assets", "images", "player.png")
+                if os.path.exists(default_path):
+                    print("尝试加载默认飞机图片")
+                    self.image = pygame.image.load(default_path).convert_alpha()
                     self.image = pygame.transform.scale(self.image, (self.width, self.height))
-        except pygame.error:
+                    print(f"成功加载默认飞机图片: {default_path}")
+                else:
+                    print("默认图片也不存在，使用默认绘制")
+        except Exception as e:
             # 如果加载失败，使用默认的矩形绘制
+            print(f"加载飞机图片失败: {e}")
+            print("使用默认绘制方式")
             self.image = None
         
     def handle_event(self, event):
