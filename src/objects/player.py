@@ -1,4 +1,5 @@
 import pygame
+import pygame
 from src.objects.bullet import Bullet, TripleBullet, ShotgunBullet, GiantBullet
 import os
 
@@ -20,6 +21,9 @@ class Player:
         self.hp = 3  # 玩家生命值
         self.max_hp = 3  # 最大生命值
         self.weapon_type = 0  # 武器类型: 0-普通, 1-三连发, 2-散弹枪, 3-巨型子弹
+        self.auto_shoot = True  # 自动射击开关
+        self.shoot_cooldown = 0  # 射击冷却计时器
+        self.shoot_delay = 15  # 射击间隔（帧数）
         
         # 尝试加载对应类型的飞机图片
         self.image = None
@@ -76,6 +80,11 @@ class Player:
             elif event.key == pygame.K_4:
                 self.weapon_type = 3
                 print("切换为：巨型子弹")
+            elif event.key == pygame.K_a:
+                # 切换自动/手动射击
+                self.auto_shoot = not self.auto_shoot
+                mode = "自动射击" if self.auto_shoot else "手动射击"
+                print(f"切换为：{mode}")
         
     def update(self):
         """更新玩家状态"""
@@ -88,6 +97,10 @@ class Player:
             self.y -= self.speed
         if keys[pygame.K_DOWN] and self.y < 600 - self.height:
             self.y += self.speed
+        
+        # 更新射击冷却
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1
             
     def draw(self, screen):
         """绘制玩家"""
@@ -115,6 +128,13 @@ class Player:
         
     def shoot(self):
         """射击 - 根据武器类型返回不同的子弹"""
+        # 检查冷却时间
+        if self.shoot_cooldown > 0:
+            return []
+        
+        # 设置冷却
+        self.shoot_cooldown = self.shoot_delay
+        
         center_x = self.x + self.width // 2
         shoot_y = self.y
         
@@ -140,6 +160,10 @@ class Player:
             return [GiantBullet(center_x - 10, shoot_y - 20)]  # 调整位置使其居中
         
         return [Bullet(center_x, shoot_y)]  # 默认返回普通子弹
+    
+    def can_auto_shoot(self):
+        """检查是否可以自动射击"""
+        return self.auto_shoot and self.shoot_cooldown == 0
     
     def take_damage(self, damage=1):
         """受到伤害"""

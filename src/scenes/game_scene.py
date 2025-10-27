@@ -58,8 +58,9 @@ class GameScene:
             
     def handle_event(self, event):
         """处理事件"""
+        # 手动射击（仅在非自动模式下有效）
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE and not self.player.auto_shoot:
                 bullets = self.player.shoot()  # 现在返回子弹列表
                 self.bullets.extend(bullets)  # 添加所有子弹
                 
@@ -73,6 +74,11 @@ class GameScene:
             # TODO: 处理游戏结束逻辑
         
         self.player.update()
+        
+        # 自动射击
+        if self.player.can_auto_shoot():
+            bullets = self.player.shoot()
+            self.bullets.extend(bullets)
         
         # 更新生成敌人计时器
         self.spawn_timer += 1
@@ -161,6 +167,12 @@ class GameScene:
         weapon_text = small_font.render(f'Weapon[1-4]: {weapon_names[self.player.weapon_type]}', 
                                        True, (200, 200, 200))
         screen.blit(weapon_text, (10, 90))
+        
+        # 绘制射击模式提示
+        shoot_mode = '自动射击' if self.player.auto_shoot else '手动射击'
+        mode_color = (0, 255, 0) if self.player.auto_shoot else (255, 255, 0)
+        mode_text = small_font.render(f'Mode[A]: {shoot_mode}', True, mode_color)
+        screen.blit(mode_text, (10, 115))
             
     def check_collisions(self):
         """检查碰撞"""
