@@ -4,6 +4,12 @@ from src.objects.player import Player
 from src.objects.enemy import Enemy, Rock, EnemyPlane, Boss
 from src.objects.bullet import EnemyBullet
 from src.objects.explosion import Explosion
+from src.objects.animation import (
+    LevelIntroAnimation, 
+    LevelCompleteAnimation, 
+    BossVictoryAnimation,
+    GameCompleteAnimation
+)
 
 class GameScene:
     def __init__(self, game, player_type=1):
@@ -28,9 +34,60 @@ class GameScene:
         self.boss_spawned = False  # 当前关卡Boss是否已出现
         self.boss_defeated = False  # Boss是否被击败
         
+        # 动画系统
+        self.current_animation = None  # 当前播放的动画
+        self.game_state = 'level_intro'  # 游戏状态: level_intro, playing, level_complete, boss_victory, game_complete
+        self.game_paused = False  # 游戏是否暂停
+        
+        # 开始第一关的关卡介绍动画
+        self._start_level_intro()
+        
         # 初始生成一些敌人
         self._spawn_initial_enemies()
             
+    def _start_level_intro(self):
+        """开始关卡介绍动画"""
+        self.current_animation = LevelIntroAnimation(
+            self.game.screen_width, 
+            self.game.screen_height, 
+            self.current_level,
+            self.score
+        )
+        self.game_state = 'level_intro'
+        self.game_paused = True
+    
+    def _start_level_complete(self):
+        """开始关卡完成动画"""
+        self.current_animation = LevelCompleteAnimation(
+            self.game.screen_width,
+            self.game.screen_height,
+            self.current_level,
+            self.score,
+            self.enemies_killed
+        )
+        self.game_state = 'level_complete'
+        self.game_paused = True
+    
+    def _start_boss_victory(self):
+        """开始Boss胜利动画"""
+        self.current_animation = BossVictoryAnimation(
+            self.game.screen_width,
+            self.game.screen_height,
+            self.current_level
+        )
+        self.game_state = 'boss_victory'
+        self.game_paused = True
+    
+    def _start_game_complete(self):
+        """开始游戏通关动画"""
+        self.current_animation = GameCompleteAnimation(
+            self.game.screen_width,
+            self.game.screen_height,
+            self.score
+        )
+        self.game_state = 'game_complete'
+        self.game_paused = True
+    
     def _spawn_initial_enemies(self):
         """初始生成敌人"""
         for i in range(3):
@@ -46,8 +103,8 @@ class GameScene:
         """随机生成敌人"""
         x = random.randint(50, 750)
         
-        # 检查是否应该生成Boss（击杀100个小怪且Boss未出现）
-        if self.enemies_killed >= 100 and not self.boss_spawned:
+        # 检查是否应该生成Boss（击杀10个小怪且Boss未出现）
+        if self.enemies_killed >= 10 and not self.boss_spawned:
             boss = Boss(x, -80, self.current_level)
             self.enemies.append(boss)
             self.boss_spawned = True
@@ -77,6 +134,17 @@ class GameScene:
         
     def update(self):
         """更新游戏状态"""
+        # 更新动画
+        if self.current_animation:
+            self.current_animation.update()
+            if self.current_animation.is_finished():
+                self._handle_animation_complete()
+                return
+        
+        # 如果游戏暂停（播放动画时），不更新游戏逻辑
+        if self.game_paused:
+            return
+        
         # 检查玩家是否死亡
         if self.player.is_dead():
             print(f"游戏结束！最终得分: {self.score}")
@@ -152,15 +220,8 @@ class GameScene:
                     self.boss_defeated = True
                     print(f"第{self.current_level}关Boss被击败！")
                     
-                    # 检查是否进入下一关
-                    if self.current_level < 3:
-                        self.current_level += 1
-                        self.enemies_killed = 0
-                        self.boss_spawned = False
-                        self.boss_defeated = False
-                        print(f"进入第{self.current_level}关！")
-                    else:
-                        print("恭喜通关！")
+                    # 播放Boss胜利动画
+                    self._start_boss_victory()
                 else:
                     # 普通敌人
                     self.score += 10
@@ -174,6 +235,51 @@ class GameScene:
         # 检查碰撞
         self.check_collisions()
         
+    def _handle_animation_complete(self):
+        """处理动画完成后的逻辑"""
+        if self.game_state == 'level_intro':
+            # 关卡介绍动画完成，开始游戏
+            self.current_animation = None
+            self.game_state = 'playing'
+            self.game_paused = False
+        
+        elif self.game_state == 'boss_victory':
+            # Boss胜利动画完成
+            self.current_animation = None
+            
+            # 检查是否进入下一关
+            if self.current_level < 3:
+                # 播放关卡完成动画
+                self._start_level_complete()
+            else:
+                # 全部通关，播放游戏通关动画
+                self._start_game_complete()
+        
+        elif self.game_state == 'level_complete':
+            # 关卡完成动画结束，进入下一关
+            self.current_level += 1
+            self.enemies_killed = 0
+            self.boss_spawned = False
+            self.boss_defeated = False
+            print(f"进入第{self.current_level}关！")
+            
+            # 清空敌人和子弹
+            self.enemies.clear()
+            self.enemy_bullets.clear()
+            self.bullets.clear()
+            
+            # 生成新的敌人
+            self._spawn_initial_enemies()
+            
+            # 播放下一关的介绍动画
+            self._start_level_intro()
+        
+        elif self.game_state == 'game_complete':
+            # 游戏通关动画完成
+            self.current_animation = None
+            self.game_paused = False
+            print("恭喜完成所有关卡！")
+    
     def draw(self, screen):
         """绘制游戏画面"""
         self.player.draw(screen)
@@ -225,6 +331,10 @@ class GameScene:
         mode_color = (0, 255, 0) if self.player.auto_shoot else (255, 255, 0)
         mode_text = small_font.render(f'Mode[A]: {shoot_mode}', True, mode_color)
         screen.blit(mode_text, (10, 185))
+        
+        # 绘制动画（在所有内容之上）
+        if self.current_animation:
+            self.current_animation.draw(screen)
             
     def check_collisions(self):
         """检查碰撞"""
