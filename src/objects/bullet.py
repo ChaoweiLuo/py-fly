@@ -109,7 +109,7 @@ class ShotgunGiantBullet(ShotgunBullet):
         """
         super().__init__(x, y, angle)
         self.angle = math.radians(angle)  # 转换为弧度
-        self.speed = 12
+        self.speed = 1
         self.color = (255, 165, 0)  # 橙色
         self.damage = 2.5  # 单发伤害较低
         self.width = 8
@@ -119,8 +119,8 @@ class ShotgunGiantBullet(ShotgunBullet):
     def update(self):
         """更新散弹枪巨型子弹位置 - 按角度飞行"""
         super().update()
-        self.x += self.speed * math.cos(self.angle)
-        self.y += self.speed * math.sin(self.angle)
+        self.x += self.speed * math.sin(self.angle)
+        self.y -= self.speed * math.cos(self.angle)
     def draw(self, screen):
         """绘制散弹枪巨型子弹 - 带光晕效果"""
         # 绘制光晕
