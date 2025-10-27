@@ -1,6 +1,6 @@
 import pygame
 import pygame
-from src.objects.bullet import Bullet, TripleBullet, ShotgunBullet, GiantBullet
+from src.objects.bullet import Bullet, TripleBullet, ShotgunBullet, GiantBullet, ShotgunGiantBullet
 import os
 
 class Player:
@@ -87,6 +87,9 @@ class Player:
             elif event.key == pygame.K_4:
                 self.weapon_type = 3
                 print("切换为：巨型子弹")
+            elif event.key == pygame.K_5:
+                self.weapon_type = 4
+                print("切换为：巨型散弹")
             elif event.key == pygame.K_a:
                 # 切换自动/手动射击
                 self.auto_shoot = not self.auto_shoot
@@ -147,7 +150,7 @@ class Player:
                             self.width - 10, 10))
         
         # 显示当前武器类型
-        weapon_names = ['普通', '三连发', '散弹枪', '巨型']
+        weapon_names = ['普通', '三连发', '散弹枪', '巨型', '巨型散弹']
         font = pygame.font.Font(None, 20)
         weapon_text = font.render(f'Weapon: {weapon_names[self.weapon_type]}', True, (255, 255, 255))
         screen.blit(weapon_text, (self.x - 10, self.y + self.height + 5))
@@ -184,6 +187,9 @@ class Player:
         elif self.weapon_type == 3:
             # 巨型子弹
             return [GiantBullet(center_x - 10, shoot_y - 20)]  # 调整位置使其居中
+        elif self.weapon_type == 4:
+            angles = [-30, -15, 0, 15, 30]  # 度数
+            return [ShotgunGiantBullet(center_x, shoot_y, angle) for angle in angles]
         
         return [Bullet(center_x, shoot_y)]  # 默认返回普通子弹
     

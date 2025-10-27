@@ -321,8 +321,8 @@ class GameScene:
             screen.blit(boss_text, (10, 130))
         
         # 绘制武器提示
-        weapon_names = ['普通子弹', '三连发', '散弹枪', '巨型子弹']
-        weapon_text = small_font.render(f'Weapon[1-4]: {weapon_names[self.player.weapon_type]}', 
+        weapon_names = ['普通子弹', '三连发', '散弹枪', '巨型子弹', '巨型散弹']
+        weapon_text = small_font.render(f'Weapon[1-5]: {weapon_names[self.player.weapon_type]}', 
                                        True, (200, 200, 200))
         screen.blit(weapon_text, (10, 160))
         
