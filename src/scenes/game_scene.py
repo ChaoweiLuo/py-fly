@@ -19,7 +19,12 @@ class GameScene:
         self.score = 0
         self.spawn_timer = 0
         self.spawn_interval = 60  # 生成敌人的间隔
-        self.boss_spawned = False
+        
+        # 关卡系统
+        self.current_level = 1  # 当前关卡 (1-3)
+        self.enemies_killed = 0  # 当前关卡击杀的敌人数
+        self.boss_spawned = False  # 当前关卡Boss是否已出现
+        self.boss_defeated = False  # Boss是否被击败
         
         # 初始生成一些敌人
         self._spawn_initial_enemies()
@@ -31,30 +36,32 @@ class GameScene:
             x = random.randint(50, 750)
             
             if enemy_type == 'rock':
-                self.enemies.append(Rock(x, -50))
+                self.enemies.append(Rock(x, -50, self.current_level))
             elif enemy_type == 'plane':
-                self.enemies.append(EnemyPlane(x, -50))
+                self.enemies.append(EnemyPlane(x, -50, self.current_level))
     
     def _spawn_enemy(self):
         """随机生成敌人"""
         x = random.randint(50, 750)
         
-        # 根据分数决定Boss是否出现
-        if self.score >= 50 and not self.boss_spawned:
-            self.enemies.append(Boss(x, -80))
+        # 检查是否应该生成Boss（击杀100个小怪且Boss未出现）
+        if self.enemies_killed >= 100 and not self.boss_spawned:
+            boss = Boss(x, -80, self.current_level)
+            self.enemies.append(boss)
             self.boss_spawned = True
-        else:
+            print(f"第{self.current_level}关Boss出现！")
+        elif not self.boss_spawned:  # Boss未出现时才生成普通敌人
             enemy_type = random.choices(
                 ['rock', 'plane', 'normal'],
                 weights=[40, 35, 25]  # 权重
             )[0]
             
             if enemy_type == 'rock':
-                self.enemies.append(Rock(x, -50))
+                self.enemies.append(Rock(x, -50, self.current_level))
             elif enemy_type == 'plane':
-                self.enemies.append(EnemyPlane(x, -50))
+                self.enemies.append(EnemyPlane(x, -50, self.current_level))
             else:
-                self.enemies.append(Enemy(x, -50))
+                self.enemies.append(Enemy(x, -50, self.current_level))
             
     def handle_event(self, event):
         """处理事件"""
@@ -125,10 +132,26 @@ class GameScene:
             # 移除死亡的敌人
             if enemy.is_dead():
                 self.enemies.remove(enemy)
-                self.score += 10
+                
+                # 如果是Boss
                 if isinstance(enemy, Boss):
-                    self.score += 100
-                    self.boss_spawned = False
+                    self.score += 500
+                    self.boss_defeated = True
+                    print(f"第{self.current_level}关Boss被击败！")
+                    
+                    # 检查是否进入下一关
+                    if self.current_level < 3:
+                        self.current_level += 1
+                        self.enemies_killed = 0
+                        self.boss_spawned = False
+                        self.boss_defeated = False
+                        print(f"进入第{self.current_level}关！")
+                    else:
+                        print("恭喜通关！")
+                else:
+                    # 普通敌人
+                    self.score += 10
+                    self.enemies_killed += 1
             
             # 移除超出屏幕的敌人
             if enemy.y > 600:
@@ -161,18 +184,30 @@ class GameScene:
         screen.blit(score_text, (10, 10))
         screen.blit(hp_text, (10, 50))
         
+        # 绘制关卡信息
+        level_text = font.render(f'Level: {self.current_level}/3', True, (255, 215, 0))
+        screen.blit(level_text, (10, 90))
+        
+        # 绘制敌人计数
+        small_font = pygame.font.Font(None, 24)
+        if not self.boss_spawned:
+            kills_text = small_font.render(f'Kills: {self.enemies_killed}/100', True, (200, 200, 200))
+            screen.blit(kills_text, (10, 130))
+        else:
+            boss_text = small_font.render('BOSS FIGHT!', True, (255, 0, 0))
+            screen.blit(boss_text, (10, 130))
+        
         # 绘制武器提示
         weapon_names = ['普通子弹', '三连发', '散弹枪', '巨型子弹']
-        small_font = pygame.font.Font(None, 24)
         weapon_text = small_font.render(f'Weapon[1-4]: {weapon_names[self.player.weapon_type]}', 
                                        True, (200, 200, 200))
-        screen.blit(weapon_text, (10, 90))
+        screen.blit(weapon_text, (10, 160))
         
         # 绘制射击模式提示
         shoot_mode = '自动射击' if self.player.auto_shoot else '手动射击'
         mode_color = (0, 255, 0) if self.player.auto_shoot else (255, 255, 0)
         mode_text = small_font.render(f'Mode[A]: {shoot_mode}', True, mode_color)
-        screen.blit(mode_text, (10, 115))
+        screen.blit(mode_text, (10, 185))
             
     def check_collisions(self):
         """检查碰撞"""

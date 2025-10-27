@@ -118,3 +118,31 @@ class EnemyBullet:
     def draw(self, screen):
         """绘制敌人子弹"""
         pygame.draw.rect(screen, self.color, (self.x, self.y, self.width, self.height))
+
+
+class BossShotgunBullet:
+    """Boss散弹子弹 - 按角度飞行"""
+    def __init__(self, x, y, angle=0):
+        """初始化Boss散弹
+        Args:
+            x: x坐标
+            y: y坐标
+            angle: 发射角度（度数）
+        """
+        self.x = x
+        self.y = y
+        self.angle = math.radians(angle + 90)  # 转换为弧度，+90使0度向下
+        self.speed = 6
+        self.color = (255, 0, 255)  # 紫色
+        self.damage = 1
+        self.width = 6
+        self.height = 6
+    
+    def update(self):
+        """更新子弹位置 - 按角度飞行"""
+        self.x += self.speed * math.cos(self.angle)
+        self.y += self.speed * math.sin(self.angle)
+    
+    def draw(self, screen):
+        """绘制Boss散弹"""
+        pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), 3)
