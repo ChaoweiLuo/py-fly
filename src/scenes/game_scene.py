@@ -46,7 +46,9 @@ class GameScene:
         
         # 检查是否应该生成Boss（击杀100个小怪且Boss未出现）
         if self.enemies_killed >= 100 and not self.boss_spawned:
-            boss = Boss(x, -80, self.current_level)
+            # Boss在屏幕中央上方出现
+            boss_x = 400 - 40  # 屏幕宽度800，Boss宽度80，居中
+            boss = Boss(boss_x, 50, self.current_level)  # y=50在屏幕上方
             self.enemies.append(boss)
             self.boss_spawned = True
             print(f"第{self.current_level}关Boss出现！")

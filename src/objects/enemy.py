@@ -45,7 +45,7 @@ class Enemy:
 
 
 class Rock(Enemy):
-    """石头敌人 - 从上方落下"""
+    """石头敌人 - 从上方落下，随机形状"""
     def __init__(self, x, y, level=1):
         super().__init__(x, y, level)
         self.width = 30
@@ -53,17 +53,77 @@ class Rock(Enemy):
         self.speed = random.uniform(2, 5)  # 随机下落速度
         self.hp = level
         self.max_hp = level
-        self.emoji = "🪨"
+        # 随机选择形状类型
+        self.shape_type = random.choice(['circle', 'triangle', 'diamond', 'hexagon', 'star'])
+        self.rotation = random.randint(0, 360)  # 随机旋转角度
+        self.color = random.choice([
+            (139, 69, 19),   # 棕色
+            (128, 128, 128), # 灰色
+            (105, 105, 105), # 暗灰色
+            (169, 169, 169), # 淡灰色
+            (160, 82, 45),   # 赭石色
+        ])
         
     def update(self):
         """更新石头位置 - 直接向下落"""
         self.y += self.speed
+        self.rotation += 2  # 缓慢旋转
         
     def draw(self, screen):
-        """绘制石头"""
-        font = pygame.font.Font(None, 36)
-        text = font.render(self.emoji, True, (100, 100, 100))
-        screen.blit(text, (self.x, self.y))
+        """绘制石头 - 根据形状类型绘制不同形状"""
+        center_x = self.x + self.width // 2
+        center_y = self.y + self.height // 2
+        
+        if self.shape_type == 'circle':
+            # 圆形
+            pygame.draw.circle(screen, self.color, (int(center_x), int(center_y)), self.width // 2)
+            pygame.draw.circle(screen, (80, 80, 80), (int(center_x), int(center_y)), self.width // 2, 2)
+            
+        elif self.shape_type == 'triangle':
+            # 三角形
+            points = [
+                (center_x, self.y),
+                (self.x, self.y + self.height),
+                (self.x + self.width, self.y + self.height)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
+            pygame.draw.polygon(screen, (80, 80, 80), points, 2)
+            
+        elif self.shape_type == 'diamond':
+            # 菱形
+            points = [
+                (center_x, self.y),
+                (self.x + self.width, center_y),
+                (center_x, self.y + self.height),
+                (self.x, center_y)
+            ]
+            pygame.draw.polygon(screen, self.color, points)
+            pygame.draw.polygon(screen, (80, 80, 80), points, 2)
+            
+        elif self.shape_type == 'hexagon':
+            # 六边形
+            import math
+            points = []
+            for i in range(6):
+                angle = math.radians(60 * i + self.rotation)
+                px = center_x + self.width // 2 * math.cos(angle)
+                py = center_y + self.height // 2 * math.sin(angle)
+                points.append((px, py))
+            pygame.draw.polygon(screen, self.color, points)
+            pygame.draw.polygon(screen, (80, 80, 80), points, 2)
+            
+        elif self.shape_type == 'star':
+            # 星形
+            import math
+            points = []
+            for i in range(10):
+                angle = math.radians(36 * i + self.rotation)
+                radius = (self.width // 2) if i % 2 == 0 else (self.width // 4)
+                px = center_x + radius * math.cos(angle - math.pi / 2)
+                py = center_y + radius * math.sin(angle - math.pi / 2)
+                points.append((px, py))
+            pygame.draw.polygon(screen, self.color, points)
+            pygame.draw.polygon(screen, (80, 80, 80), points, 2)
 
 
 class EnemyPlane(Enemy):
@@ -123,13 +183,18 @@ class Boss(Enemy):
         super().__init__(x, y, level)
         self.width = 80
         self.height = 80
-        self.speed = 2
+        self.speed_x = 2  # 水平移动速度
+        self.speed_y = 1.5  # 垂直移动速度
         self.level = level
         self.hp = level * 100  # Boss血量是关卡等级的00個
         self.max_hp = level * 100
-        self.direction = 1
+        self.direction_x = 1  # 水平方向
+        self.direction_y = 1  # 垂直方向
         self.action_cooldown = 0
         self.action_delay = 60  # 行动间隔更频繁
+        
+        # Boss出现在屏幕上方
+        self.y = 50
         
         # 加载Boss图片
         self.image = None
@@ -151,12 +216,23 @@ class Boss(Enemy):
             self.image = None
         
     def update(self):
-        """更新Boss位置"""
-        self.x += self.speed * self.direction
+        """更新Boss位置 - 在屏幕上半部分上下左右移动"""
+        # 水平移动
+        self.x += self.speed_x * self.direction_x
         
-        # 边界检测
+        # 水平边界检测
         if self.x <= 0 or self.x >= 800 - self.width:
-            self.direction *= -1
+            self.direction_x *= -1
+        
+        # 垂直移动
+        self.y += self.speed_y * self.direction_y
+        
+        # 垂直边界检测（只在屏幕上半部分移动）
+        # 上边界: 50像素，下边界: 300像素（屏幕一半）
+        if self.y <= 50:
+            self.direction_y = 1  # 向下移动
+        elif self.y >= 250:  # 留出空间给Boss高度
+            self.direction_y = -1  # 向上移动
         
         # 更新行动冷却
         self.action_cooldown += 1
