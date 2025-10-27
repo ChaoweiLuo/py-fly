@@ -1,11 +1,61 @@
 import pygame
 import random
 import math
+import sys
+import os
 
 class Animation:
     """动画基类"""
     def __init__(self):
         self.finished = False
+        # 加载支持中文的字体
+        self.chinese_font_cache = {}
+    
+    def get_chinese_font(self, size):
+        """获取支持中文的字体"""
+        if size in self.chinese_font_cache:
+            return self.chinese_font_cache[size]
+        
+        try:
+            # 尝试使用系统中文字体
+            if sys.platform == 'win32':
+                # Windows系统
+                font_paths = [
+                    'C:/Windows/Fonts/msyh.ttc',  # 微软雅黑
+                    'C:/Windows/Fonts/simhei.ttf',  # 黑体
+                    'C:/Windows/Fonts/simsun.ttc',  # 宋体
+                ]
+            elif sys.platform == 'darwin':
+                # macOS系统
+                font_paths = [
+                    '/System/Library/Fonts/PingFang.ttc',
+                    '/System/Library/Fonts/STHeiti Light.ttc',
+                ]
+            else:
+                # Linux系统
+                font_paths = [
+                    '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
+                    '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
+                ]
+            
+            # 尝试加载字体
+            for font_path in font_paths:
+                if os.path.exists(font_path):
+                    font = pygame.font.Font(font_path, size)
+                    self.chinese_font_cache[size] = font
+                    return font
+            
+            # 如果没有找到字体文件，使用pygame默认字体
+            print(f"警告: 未找到中文字体，使用默认字体")
+            font = pygame.font.Font(None, size)
+            self.chinese_font_cache[size] = font
+            return font
+            
+        except Exception as e:
+            print(f"加载字体失败: {e}，使用默认字体")
+            font = pygame.font.Font(None, size)
+            self.chinese_font_cache[size] = font
+            return font
     
     def update(self):
         """更新动画"""
@@ -64,9 +114,9 @@ class WelcomeAnimation(Animation):
         if self.timer > 120:  # 最后1秒淡出
             alpha = 255 - (self.timer - 120) * 4
         
-        # 绘制标题
-        title_font = pygame.font.Font(None, 80)
-        subtitle_font = pygame.font.Font(None, 40)
+        # 绘制标题 - 使用支持中文的字体
+        title_font = self.get_chinese_font(80)
+        subtitle_font = self.get_chinese_font(40)
         
         # 主标题
         title_text = title_font.render('打飞机游戏', True, (255, 215, 0))
@@ -89,7 +139,7 @@ class WelcomeAnimation(Animation):
         
         # 提示文字（闪烁效果）
         if self.timer > 60 and (self.timer // 15) % 2 == 0:
-            hint_font = pygame.font.Font(None, 28)
+            hint_font = self.get_chinese_font(28)
             hint_text = hint_font.render('按任意键开始...', True, (200, 200, 200))
             hint_rect = hint_text.get_rect(center=(self.screen_width // 2, 400))
             screen.blit(hint_text, hint_rect)
@@ -145,8 +195,8 @@ class LevelIntroAnimation(Animation):
         # 缩放效果
         scale = min(1.0, self.timer / 30)
         
-        # 关卡标题
-        level_font = pygame.font.Font(None, 100)
+        # 关卡标题 - 使用支持中文的字体
+        level_font = self.get_chinese_font(100)
         level_text = level_font.render(f'第 {self.level} 关', True, (255, 215, 0))
         level_rect = level_text.get_rect(center=(self.screen_width // 2, 200))
         
@@ -160,7 +210,7 @@ class LevelIntroAnimation(Animation):
         
         # 提示信息
         if self.timer > 30:
-            info_font = pygame.font.Font(None, 36)
+            info_font = self.get_chinese_font(36)
             
             # 当前分数
             score_text = info_font.render(f'当前分数: {self.player_score}', True, (255, 255, 255))
@@ -257,14 +307,14 @@ class LevelCompleteAnimation(Animation):
                         pygame.draw.circle(screen, particle['color'],
                                          (int(particle['x']), int(particle['y'])), size)
         
-        # 标题
-        title_font = pygame.font.Font(None, 80)
+        # 标题 - 使用支持中文的字体
+        title_font = self.get_chinese_font(80)
         title_text = title_font.render('关卡完成！', True, (255, 215, 0))
         title_rect = title_text.get_rect(center=(self.screen_width // 2, 150))
         screen.blit(title_text, title_rect)
         
         # 统计信息
-        info_font = pygame.font.Font(None, 40)
+        info_font = self.get_chinese_font(40)
         y_offset = 250
         
         stats = [
@@ -281,7 +331,7 @@ class LevelCompleteAnimation(Animation):
         
         # 提示文字
         if self.timer > 60:
-            hint_font = pygame.font.Font(None, 32)
+            hint_font = self.get_chinese_font(32)
             hint_text = hint_font.render('准备进入下一关...', True, (0, 255, 255))
             hint_rect = hint_text.get_rect(center=(self.screen_width // 2, 450))
             screen.blit(hint_text, hint_rect)
@@ -402,7 +452,7 @@ class BossVictoryAnimation(Animation):
         
         # 胜利文字（脉冲效果）
         pulse = abs(math.sin(self.timer / 10)) * 20 + 60
-        title_font = pygame.font.Font(None, int(pulse) + 20)
+        title_font = self.get_chinese_font(int(pulse) + 20)
         
         # 主标题
         title_text = title_font.render('Boss 击败！', True, (255, 215, 0))
@@ -412,7 +462,8 @@ class BossVictoryAnimation(Animation):
         glow_surface = pygame.Surface(title_text.get_size(), pygame.SRCALPHA)
         for offset in range(5, 0, -1):
             alpha = 100 // offset
-            glow_text = title_font.render('Boss 击败！', True, (255, 215, 0, alpha))
+            glow_font = self.get_chinese_font(int(pulse) + 20)
+            glow_text = glow_font.render('Boss 击败！', True, (255, 215, 0, alpha))
             glow_rect = glow_text.get_rect(center=(self.screen_width // 2, 200))
             screen.blit(glow_text, (glow_rect.x - offset, glow_rect.y - offset))
             screen.blit(glow_text, (glow_rect.x + offset, glow_rect.y + offset))
@@ -420,7 +471,7 @@ class BossVictoryAnimation(Animation):
         screen.blit(title_text, title_rect)
         
         # 副标题
-        subtitle_font = pygame.font.Font(None, 50)
+        subtitle_font = self.get_chinese_font(50)
         subtitle_text = subtitle_font.render('恭喜胜利！', True, (255, 255, 255))
         subtitle_rect = subtitle_text.get_rect(center=(self.screen_width // 2, 280))
         screen.blit(subtitle_text, subtitle_rect)
@@ -509,19 +560,19 @@ class GameCompleteAnimation(Animation):
                                      (int(particle['x']), int(particle['y'])), size)
         
         # 绘制文字
-        title_font = pygame.font.Font(None, 100)
+        title_font = self.get_chinese_font(100)
         title_text = title_font.render('恭喜通关！', True, (255, 215, 0))
         title_rect = title_text.get_rect(center=(self.screen_width // 2, 180))
         screen.blit(title_text, title_rect)
         
         # 最终分数
-        score_font = pygame.font.Font(None, 60)
+        score_font = self.get_chinese_font(60)
         score_text = score_font.render(f'最终得分: {self.final_score}', True, (255, 255, 255))
         score_rect = score_text.get_rect(center=(self.screen_width // 2, 300))
         screen.blit(score_text, score_rect)
         
         # 感谢文字
-        thank_font = pygame.font.Font(None, 40)
+        thank_font = self.get_chinese_font(40)
         thank_text = thank_font.render('感谢游玩！', True, (0, 255, 255))
         thank_rect = thank_text.get_rect(center=(self.screen_width // 2, 400))
         screen.blit(thank_text, thank_rect)
