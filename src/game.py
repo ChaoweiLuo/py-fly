@@ -51,4 +51,13 @@ class Game:
         """绘制游戏画面"""
         self.screen.fill((0, 0, 0))  # 填充黑色背景
         self.current_scene.draw(self.screen)
+        
+        # 绘制FPS（右上角）
+        fps = int(self.clock.get_fps())
+        font = pygame.font.Font(None, 28)
+        fps_text = font.render(f'FPS: {fps}', True, (255, 255, 255))
+        fps_rect = fps_text.get_rect()
+        fps_rect.topright = (self.screen_width - 10, 10)  # 右上角，留10像素边距
+        self.screen.blit(fps_text, fps_rect)
+        
         pygame.display.flip()
