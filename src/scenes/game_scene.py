@@ -3,6 +3,7 @@ import random
 from src.objects.player import Player
 from src.objects.enemy import Enemy, Rock, EnemyPlane, Boss
 from src.objects.bullet import EnemyBullet
+from src.objects.explosion import Explosion
 
 class GameScene:
     def __init__(self, game, player_type=1):
@@ -16,6 +17,7 @@ class GameScene:
         self.enemies = []
         self.bullets = []
         self.enemy_bullets = []  # 敌人子弹列表
+        self.explosions = []  # 爆炸效果列表
         self.score = 0
         self.spawn_timer = 0
         self.spawn_interval = 60  # 生成敌人的间隔
@@ -45,10 +47,8 @@ class GameScene:
         x = random.randint(50, 750)
         
         # 检查是否应该生成Boss（击杀100个小怪且Boss未出现）
-        if self.enemies_killed >= 10 and not self.boss_spawned:
-            # Boss在屏幕中央上方出现
-            boss_x = 400 - 40  # 屏幕宽度800，Boss宽度80，居中
-            boss = Boss(boss_x, 50, self.current_level)  # y=50在屏幕上方
+        if self.enemies_killed >= 100 and not self.boss_spawned:
+            boss = Boss(x, -80, self.current_level)
             self.enemies.append(boss)
             self.boss_spawned = True
             print(f"第{self.current_level}关Boss出现！")
@@ -109,6 +109,12 @@ class GameScene:
             # 移除超出屏幕的子弹
             if bullet.y > 600:
                 self.enemy_bullets.remove(bullet)
+        
+        # 更新爆炸效果
+        for explosion in self.explosions[:]:
+            explosion.update()
+            if explosion.is_finished():
+                self.explosions.remove(explosion)
                 
         # 更新敌人
         for enemy in self.enemies[:]:
@@ -133,6 +139,11 @@ class GameScene:
             
             # 移除死亡的敌人
             if enemy.is_dead():
+                # 创建爆炸效果
+                explosion_size = enemy.width if hasattr(enemy, 'width') else 30
+                explosion = Explosion(enemy.x + explosion_size // 2, enemy.y + explosion_size // 2, explosion_size)
+                self.explosions.append(explosion)
+                
                 self.enemies.remove(enemy)
                 
                 # 如果是Boss
@@ -178,6 +189,10 @@ class GameScene:
         # 绘制敌人
         for enemy in self.enemies:
             enemy.draw(screen)
+        
+        # 绘制爆炸效果
+        for explosion in self.explosions:
+            explosion.draw(screen)
         
         # 绘制分数和生命值
         font = pygame.font.Font(None, 36)

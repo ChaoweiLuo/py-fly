@@ -25,6 +25,13 @@ class Player:
         self.shoot_cooldown = 0  # 射击冷却计时器
         self.shoot_delay = 15  # 射击间隔（帧数）
         
+        # 无敌和闪烁系统
+        self.invincible = False  # 是否无敌
+        self.invincible_timer = 0  # 无敌计时器
+        self.invincible_duration = 180  # 无敌持续时间（3秒 = 180帧）
+        self.blink_timer = 0  # 闪烁计时器
+        self.visible = True  # 是否可见（用于闪烁效果）
+        
         # 尝试加载对应类型的飞机图片
         self.image = None
         self._load_player_image(player_type)
@@ -101,9 +108,28 @@ class Player:
         # 更新射击冷却
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
+        
+        # 更新无敌状态
+        if self.invincible:
+            self.invincible_timer -= 1
+            self.blink_timer += 1
+            
+            # 闪烁效果（每5帧切换一次可见性）
+            if self.blink_timer % 5 == 0:
+                self.visible = not self.visible
+            
+            # 无敌时间结束
+            if self.invincible_timer <= 0:
+                self.invincible = False
+                self.visible = True
+                self.blink_timer = 0
             
     def draw(self, screen):
         """绘制玩家"""
+        # 如果不可见（闪烁状态），不绘制
+        if not self.visible:
+            return
+        
         if self.image:
             # 使用图片绘制飞机
             screen.blit(self.image, (self.x, self.y))
@@ -167,7 +193,17 @@ class Player:
     
     def take_damage(self, damage=1):
         """受到伤害"""
+        # 如果处于无敌状态，不受伤害
+        if self.invincible:
+            return
+        
         self.hp -= damage
+        
+        # 受伤后进入无敌状态
+        self.invincible = True
+        self.invincible_timer = self.invincible_duration
+        self.blink_timer = 0
+        self.visible = True
     
     def is_dead(self):
         """检查是否死亡"""
