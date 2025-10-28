@@ -45,7 +45,7 @@ class GameScene:
         
         # 初始生成一些敌人
         self._spawn_initial_enemies()
-            
+    
     def _start_level_intro(self):
         """开始关卡介绍动画"""
         self.current_animation = LevelIntroAnimation(
@@ -99,7 +99,7 @@ class GameScene:
         )
         self.game_state = 'game_over'
         self.game_paused = True
-    
+            
     def _spawn_initial_enemies(self):
         """初始生成敌人"""
         for i in range(3):
@@ -136,15 +136,15 @@ class GameScene:
             
     def handle_event(self, event):
         """处理事件"""
-        # 处理游戏结束状态的续命
+        # 处理游戏结束状态的续命 - 只需要按R键，不需要CTRL
         if self.game_state == 'game_over' and event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
-                # 续命：恢夃3点生命值
+                # 续命：恢复3点生命值
                 self.player.hp = 3
                 self.current_animation = None
                 self.game_state = 'playing'
                 self.game_paused = False
-                print("续命成功！生命值恢复到73")
+                print("续命成功！生命值恢复到3")
                 return
             elif event.key == pygame.K_ESCAPE:
                 # 退出游戏
@@ -264,7 +264,7 @@ class GameScene:
                 
         # 检查碰撞
         self.check_collisions()
-        
+    
     def _handle_animation_complete(self):
         """处理动画完成后的逻辑"""
         if self.game_state == 'level_intro':
@@ -317,7 +317,7 @@ class GameScene:
         elif self.game_state == 'game_over':
             # 游戏结束动画完成，保持暂停状态，等待玩家选择续命或退出
             pass
-    
+        
     def draw(self, screen):
         """绘制游戏画面"""
         self.player.draw(screen)
@@ -338,7 +338,7 @@ class GameScene:
         for explosion in self.explosions:
             explosion.draw(screen)
         
-        # 绘制分数和生命值
+        # 绘制分数和生命值（已移除max_hp显示）
         font = pygame.font.Font(None, 36)
         score_text = font.render(f'Score: {self.score}', True, (255, 255, 255))
         hp_text = font.render(f'HP: {self.player.hp}', True, (255, 255, 255))
@@ -352,7 +352,7 @@ class GameScene:
         # 绘制敌人计数
         small_font = pygame.font.Font(None, 24)
         if not self.boss_spawned:
-            kills_text = small_font.render(f'Kills: {self.enemies_killed}/100', True, (200, 200, 200))
+            kills_text = small_font.render(f'Kills: {self.enemies_killed}/10', True, (200, 200, 200))
             screen.blit(kills_text, (10, 130))
         else:
             boss_text = small_font.render('BOSS FIGHT!', True, (255, 0, 0))
