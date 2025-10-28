@@ -19,7 +19,7 @@ class Player:
         self.color = (0, 255, 0)  # 绿色
         self.player_type = player_type  # 记录飞机类型
         self.hp = 3  # 玩家生命值
-        self.max_hp = 3  # 最大生命值
+        # 移除max_hp限制，生命值可以无限增长
         self.weapon_type = 0  # 武器类型: 0-普通, 1-三连发, 2-散弹枪, 3-巨型子弹
         self.auto_shoot = True  # 自动射击开关
         self.shoot_cooldown = 0  # 射击冷却计时器
@@ -214,3 +214,8 @@ class Player:
     def is_dead(self):
         """检查是否死亡"""
         return self.hp <= 0
+    
+    def add_hp(self, amount=1):
+        """增加生命值（无上限限制）"""
+        self.hp += amount
+        print(f"生命值+{amount}，当前生命值: {self.hp}")

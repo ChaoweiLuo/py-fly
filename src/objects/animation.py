@@ -576,3 +576,88 @@ class GameCompleteAnimation(Animation):
         thank_text = thank_font.render('感谢游玩！', True, (0, 255, 255))
         thank_rect = thank_text.get_rect(center=(self.screen_width // 2, 400))
         screen.blit(thank_text, thank_rect)
+
+
+class GameOverAnimation(Animation):
+    """游戏结束动画（玩家死亡）"""
+    def __init__(self, screen_width, screen_height, final_score, level):
+        super().__init__()
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+        self.final_score = final_score
+        self.level = level
+        self.timer = 0
+        self.duration = 300  # 5秒，留出续命时间
+        self.particles = []
+        
+        # 生成下落的粒子效果
+        for i in range(100):
+            self.particles.append({
+                'x': random.randint(0, screen_width),
+                'y': random.randint(-500, 0),
+                'vy': random.uniform(1, 3),
+                'size': random.randint(2, 6),
+                'color': random.choice([
+                    (128, 128, 128), (100, 100, 100), (150, 150, 150)
+                ])
+            })
+    
+    def update(self):
+        """更新动画"""
+        self.timer += 1
+        if self.timer >= self.duration:
+            self.finished = True
+        
+        # 更新下落粒子
+        for particle in self.particles:
+            particle['y'] += particle['vy']
+            if particle['y'] > self.screen_height:
+                particle['y'] = random.randint(-50, 0)
+                particle['x'] = random.randint(0, self.screen_width)
+    
+    def draw(self, screen):
+        """绘制动画"""
+        # 绘制半透明暗色背景
+        overlay = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 220))
+        screen.blit(overlay, (0, 0))
+        
+        # 绘制下落粒子
+        for particle in self.particles:
+            pygame.draw.circle(screen, particle['color'],
+                             (int(particle['x']), int(particle['y'])), particle['size'])
+        
+        # 主标题 - 闪烁效果
+        pulse = abs(math.sin(self.timer / 20)) * 30 + 70
+        title_font = self.get_chinese_font(int(pulse) + 30)
+        title_text = title_font.render('GAME OVER', True, (255, 50, 50))
+        title_rect = title_text.get_rect(center=(self.screen_width // 2, 150))
+        screen.blit(title_text, title_rect)
+        
+        # 统计信息
+        info_font = self.get_chinese_font(40)
+        y_offset = 250
+        
+        stats = [
+            f'关卡: {self.level}/3',
+            f'最终得分: {self.final_score}',
+        ]
+        
+        for stat in stats:
+            stat_text = info_font.render(stat, True, (255, 255, 255))
+            stat_rect = stat_text.get_rect(center=(self.screen_width // 2, y_offset))
+            screen.blit(stat_text, stat_rect)
+            y_offset += 60
+        
+        # 续命提示（闪烁效果）
+        if (self.timer // 20) % 2 == 0:
+            revive_font = self.get_chinese_font(48)
+            revive_text = revive_font.render('按 R 键续命（恢复3点生命值）', True, (0, 255, 0))
+            revive_rect = revive_text.get_rect(center=(self.screen_width // 2, 420))
+            screen.blit(revive_text, revive_rect)
+        
+        # 退出提示
+        hint_font = self.get_chinese_font(28)
+        hint_text = hint_font.render('按 ESC 退出游戏', True, (200, 200, 200))
+        hint_rect = hint_text.get_rect(center=(self.screen_width // 2, 520))
+        screen.blit(hint_text, hint_rect)

@@ -8,7 +8,8 @@ from src.objects.animation import (
     LevelIntroAnimation, 
     LevelCompleteAnimation, 
     BossVictoryAnimation,
-    GameCompleteAnimation
+    GameCompleteAnimation,
+    GameOverAnimation
 )
 
 class GameScene:
@@ -36,7 +37,7 @@ class GameScene:
         
         # 动画系统
         self.current_animation = None  # 当前播放的动画
-        self.game_state = 'level_intro'  # 游戏状态: level_intro, playing, level_complete, boss_victory, game_complete
+        self.game_state = 'level_intro'  # 游戏状态: level_intro, playing, level_complete, boss_victory, game_complete, game_over
         self.game_paused = False  # 游戏是否暂停
         
         # 开始第一关的关卡介绍动画
@@ -88,6 +89,17 @@ class GameScene:
         self.game_state = 'game_complete'
         self.game_paused = True
     
+    def _start_game_over(self):
+        """开始游戏结束动画（玩家死亡）"""
+        self.current_animation = GameOverAnimation(
+            self.game.screen_width,
+            self.game.screen_height,
+            self.score,
+            self.current_level
+        )
+        self.game_state = 'game_over'
+        self.game_paused = True
+    
     def _spawn_initial_enemies(self):
         """初始生成敌人"""
         for i in range(3):
@@ -124,6 +136,23 @@ class GameScene:
             
     def handle_event(self, event):
         """处理事件"""
+        # 处理游戏结束状态的续命
+        if self.game_state == 'game_over' and event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                # 续命：恢夃3点生命值
+                self.player.hp = 3
+                self.current_animation = None
+                self.game_state = 'playing'
+                self.game_paused = False
+                print("续命成功！生命值恢复到73")
+                return
+            elif event.key == pygame.K_ESCAPE:
+                # 退出游戏
+                import sys
+                pygame.quit()
+                sys.exit()
+                return
+        
         # 手动射击（仅在非自动模式下有效）
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and not self.player.auto_shoot:
@@ -146,9 +175,10 @@ class GameScene:
             return
         
         # 检查玩家是否死亡
-        if self.player.is_dead():
-            print(f"游戏结束！最终得分: {self.score}")
-            # TODO: 处理游戏结束逻辑
+        if self.player.is_dead() and self.game_state != 'game_over':
+            print(f"玩家死亡！关卡: {self.current_level}, 最终得分: {self.score}")
+            self._start_game_over()
+            return
         
         self.player.update()
         
@@ -261,6 +291,10 @@ class GameScene:
             self.enemies_killed = 0
             self.boss_spawned = False
             self.boss_defeated = False
+            
+            # 奖励玩家1点生命值
+            self.player.add_hp(1)
+            
             print(f"进入第{self.current_level}关！")
             
             # 清空敌人和子弹
@@ -279,6 +313,10 @@ class GameScene:
             self.current_animation = None
             self.game_paused = False
             print("恭喜完成所有关卡！")
+        
+        elif self.game_state == 'game_over':
+            # 游戏结束动画完成，保持暂停状态，等待玩家选择续命或退出
+            pass
     
     def draw(self, screen):
         """绘制游戏画面"""
@@ -303,7 +341,7 @@ class GameScene:
         # 绘制分数和生命值
         font = pygame.font.Font(None, 36)
         score_text = font.render(f'Score: {self.score}', True, (255, 255, 255))
-        hp_text = font.render(f'HP: {self.player.hp}/{self.player.max_hp}', True, (255, 255, 255))
+        hp_text = font.render(f'HP: {self.player.hp}', True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
         screen.blit(hp_text, (10, 50))
         
