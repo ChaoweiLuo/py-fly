@@ -1,6 +1,7 @@
 import pygame
 import random
 import os
+from src.objects.font_manager import get_font
 
 class Enemy:
     """基础敌人类"""
@@ -256,7 +257,7 @@ class Boss(Enemy):
                        (self.x, self.y - 15, bar_width * health_ratio, bar_height))
         
         # 显示Boss血量数值
-        font = pygame.font.Font(None, 20)
+        font = get_font(20)
         hp_text = font.render(f'{int(self.hp)}/{self.max_hp}', True, (255, 255, 255))
         screen.blit(hp_text, (self.x + 5, self.y - 30))
     

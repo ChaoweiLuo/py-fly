@@ -4,6 +4,9 @@ import math
 import sys
 import os
 
+# 导入字体管理器
+from src.objects.font_manager import get_chinese_font
+
 class Animation:
     """动画基类"""
     def __init__(self):
@@ -13,49 +16,7 @@ class Animation:
     
     def get_chinese_font(self, size):
         """获取支持中文的字体"""
-        if size in self.chinese_font_cache:
-            return self.chinese_font_cache[size]
-        
-        try:
-            # 尝试使用系统中文字体
-            if sys.platform == 'win32':
-                # Windows系统
-                font_paths = [
-                    'C:/Windows/Fonts/msyh.ttc',  # 微软雅黑
-                    'C:/Windows/Fonts/simhei.ttf',  # 黑体
-                    'C:/Windows/Fonts/simsun.ttc',  # 宋体
-                ]
-            elif sys.platform == 'darwin':
-                # macOS系统
-                font_paths = [
-                    '/System/Library/Fonts/PingFang.ttc',
-                    '/System/Library/Fonts/STHeiti Light.ttc',
-                ]
-            else:
-                # Linux系统
-                font_paths = [
-                    '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
-                    '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
-                ]
-            
-            # 尝试加载字体
-            for font_path in font_paths:
-                if os.path.exists(font_path):
-                    font = pygame.font.Font(font_path, size)
-                    self.chinese_font_cache[size] = font
-                    return font
-            
-            # 如果没有找到字体文件，使用pygame默认字体
-            print(f"警告: 未找到中文字体，使用默认字体")
-            font = pygame.font.Font(None, size)
-            self.chinese_font_cache[size] = font
-            return font
-            
-        except Exception as e:
-            print(f"加载字体失败: {e}，使用默认字体")
-            font = pygame.font.Font(None, size)
-            self.chinese_font_cache[size] = font
-            return font
+        return get_chinese_font(size)
     
     def update(self):
         """更新动画"""

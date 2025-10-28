@@ -2,6 +2,7 @@ import pygame
 import sys
 from src.scenes.game_scene import GameScene
 from src.objects.animation import WelcomeAnimation
+from src.objects.font_manager import get_font
 
 class Game:
     def __init__(self, player_type=1):
@@ -78,7 +79,7 @@ class Game:
             
             # 绘制FPS（右上角）
             fps = int(self.clock.get_fps())
-            font = pygame.font.Font(None, 28)
+            font = get_font(28)
             fps_text = font.render(f'FPS: {fps}', True, (255, 255, 255))
             fps_rect = fps_text.get_rect()
             fps_rect.topright = (self.screen_width - 10, 10)  # 右上角，留10像素边距

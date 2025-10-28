@@ -1,6 +1,7 @@
 import pygame
 import pygame
 from src.objects.bullet import Bullet, TripleBullet, ShotgunBullet, GiantBullet, ShotgunGiantBullet
+from src.objects.font_manager import get_font
 import os
 
 class Player:
@@ -151,7 +152,7 @@ class Player:
         
         # 显示当前武器类型
         weapon_names = ['普通', '三连发', '散弹枪', '巨型', '巨型散弹']
-        font = pygame.font.Font(None, 20)
+        font = get_font(20)
         weapon_text = font.render(f'Weapon: {weapon_names[self.weapon_type]}', True, (255, 255, 255))
         screen.blit(weapon_text, (self.x - 10, self.y + self.height + 5))
         

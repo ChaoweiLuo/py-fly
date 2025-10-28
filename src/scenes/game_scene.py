@@ -11,6 +11,7 @@ from src.objects.animation import (
     GameCompleteAnimation,
     GameOverAnimation
 )
+from src.objects.font_manager import get_font
 
 class GameScene:
     def __init__(self, game, player_type=1):
@@ -339,7 +340,7 @@ class GameScene:
             explosion.draw(screen)
         
         # 绘制分数和生命值
-        font = pygame.font.Font(None, 36)
+        font = get_font(36)
         score_text = font.render(f'Score: {self.score}', True, (255, 255, 255))
         hp_text = font.render(f'HP: {self.player.hp}', True, (255, 255, 255))
         screen.blit(score_text, (10, 10))
@@ -350,7 +351,7 @@ class GameScene:
         screen.blit(level_text, (10, 90))
         
         # 绘制敌人计数
-        small_font = pygame.font.Font(None, 24)
+        small_font = get_font(24)
         if not self.boss_spawned:
             kills_text = small_font.render(f'Kills: {self.enemies_killed}/100', True, (200, 200, 200))
             screen.blit(kills_text, (10, 130))
