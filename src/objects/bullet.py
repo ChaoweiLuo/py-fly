@@ -109,7 +109,7 @@ class ShotgunGiantBullet(ShotgunBullet):
         """
         super().__init__(x, y, angle)
         self.angle = math.radians(angle)  # 转换为弧度
-        self.speed = 1
+        self.speed = 6
         self.color = (255, 165, 0)  # 橙色
         self.damage = 2.5  # 单发伤害较低
         self.width = 8
