@@ -182,14 +182,14 @@ class Player:
         
         elif self.weapon_type == 2:
             # 散弹枪 - 5发扇形射击
-            angles = [-30, -15, 0, 15, 30]  # 度数
+            angles = range(-100, 100, 2)  # 度数
             return [ShotgunBullet(center_x, shoot_y, angle) for angle in angles]
         
         elif self.weapon_type == 3:
             # 巨型子弹
             return [GiantBullet(center_x - 10, shoot_y - 20)]  # 调整位置使其居中
         elif self.weapon_type == 4:
-            angles = [-30, -15, 0, 15, 30]  # 度数
+            angles = range(-40, 40, 4)  # 度数
             return [ShotgunGiantBullet(center_x, shoot_y, angle) for angle in angles]
         
         return [Bullet(center_x, shoot_y)]  # 默认返回普通子弹
